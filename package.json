@@ -1,0 +1,36 @@
+{
+  "name": "atf_import",
+  "version": "1.0.0",
+  "description": "Normalizes imports for all the flavors",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/queuetue/atf_import.git"
+  },
+  "author": "Scott Russell (scott@queuetue.com)",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/queuetue/atf_import/issues"
+  },
+  "homepage": "https://github.com/queuetue/atf_import#readme",
+  "dependencies": {
+    "@google-cloud/datastore": "^1.1.0",
+    "@google-cloud/storage": "^1.4.0",
+    "aws-sdk": "^2.139.0",
+    "csv": "^2.0.0",
+    "csv-parse": "^2.0.0",
+    "dotenv": "^4.0.0",
+    "fs": "0.0.1-security",
+    "mongodb": "^2.2.33",
+    "s3-streams": "^0.3.0",
+    "trim": "0.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^4.9.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.8.0"
+  }
+}

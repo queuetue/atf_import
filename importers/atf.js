@@ -1,8 +1,8 @@
 require('dotenv').config();
 const CSVBaseImporter = require('./csv_base');
-const Entity = require('../entities/bcf');
+const Entity = require('../entities/atf');
 
-module.exports = class Importer extends CSVBaseImporter {
+module.exports = class extends CSVBaseImporter {
   constructor(filename, session, db) {
     super(filename, session, db);
     this.Entity = Entity;

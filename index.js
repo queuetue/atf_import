@@ -6,8 +6,8 @@ const { MongoClient } = require('mongodb');
 const mongoSessionCollectionName = `${process.env.MONGO_COLLECTION}Session`;
 
 // Temporary vars for scaffolding
-const fileType = 'bcf';
-const filename = './samples/BCF_native_export.csv';
+const fileType = 'atf';
+const filename = './samples/atf_export.csv';
 
 const Importer = require(`./importers/${fileType}`);
 

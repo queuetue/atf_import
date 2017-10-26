@@ -2,27 +2,36 @@ const CSVBaseImportEntity = require('./csv_base');
 
 const trimRe = /^\s+|\s+$/g;
 
-module.exports = class BCFImportEntity extends CSVBaseImportEntity {
+module.exports = class Entity extends CSVBaseImportEntity {
   getName(record) {
-    const [nameAndVolume] = record;
     let name;
+    const [nameAndVolume] = record;
 
-    if (nameAndVolume === 'Cart Items') {
+    if (nameAndVolume === 'Item') {
       this.entity.error = 'This appears to be a header.';
       return null;
     }
 
-    const nameRe = /^[^(]+/;
+    const nameRe = /^(.*) [0-9]+(?:ml|oz)/;
     const match = nameRe.exec(nameAndVolume);
 
     if (match) {
-      name = match[0].trim();
+      [, name] = match;
+      name = name.replace(' by ', ' ');
+      name = name.replace('Size', '');
+      name = name.replace('Capella Flavor Drops', 'Capella');
+      name = name.replace('Flavor Express', 'Flavors Express');
+      name = name.replace('Tobacco Express', 'Flavors Express');
+      name = name.replace('Lotus Flavors', 'Medicine Flower');
+      name = name.replace('Signature (TFA)', '(TFA)');
+      name = name.trim();
     }
 
     if (name === null || name === undefined || name.length <= 0) {
       this.entity.error = 'Name is blank.';
       return null;
     }
+
     return name;
   }
 
@@ -67,7 +76,7 @@ module.exports = class BCFImportEntity extends CSVBaseImportEntity {
 
   getPrice(record) {
     let price;
-    const [, , , , totalPrice] = record;
+    const [, , , totalPrice] = record;
     const priceRe = /[0-9.]+/;
     const match = priceRe.exec(totalPrice);
     if (match) {

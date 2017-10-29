@@ -4,7 +4,7 @@ const trimRe = /^\s+|\s+$/g;
 
 module.exports = class extends CSVBaseImportEntity {
   getName(record) {
-    const [, name] = record;
+    const name = record.Flavor;
 
     if (name === 'Flavor') {
       this.entity.error = 'This appears to be a header.';
@@ -23,7 +23,7 @@ module.exports = class extends CSVBaseImportEntity {
   }
 
   getVolume(record, quantity) {
-    const [, , , , , volumeString] = record;
+    const volumeString = record.Volume;
     let volume = parseFloat(volumeString.replace(trimRe, '')) * parseFloat(quantity);
     if (Number.isNaN(volume)) {
       volume = 0;
@@ -32,18 +32,18 @@ module.exports = class extends CSVBaseImportEntity {
   }
 
   getPrice(record) {
-    const [, , , , priceString] = record;
+    const priceString = record.Price;
     const price = parseFloat(priceString);
     return price;
   }
 
   getNotes(record) {
-    const [, , , , , , , , notes] = record;
+    const notes = record.Notes;
     return notes;
   }
 
   getScore(record) {
-    const [, , , scoreString] = record;
+    const scoreString = record.Score;
     let score = parseFloat(scoreString.replace(trimRe, ''));
     if (Number.isNaN(score)) {
       score = null;
@@ -52,7 +52,7 @@ module.exports = class extends CSVBaseImportEntity {
   }
 
   getDensity(record) {
-    const [, , densityString] = record;
+    const densityString = record.Density;
     let density = parseFloat(densityString.replace(trimRe, ''));
     if (Number.isNaN(density)) {
       density = 0;
@@ -61,7 +61,7 @@ module.exports = class extends CSVBaseImportEntity {
   }
 
   getStock(record) {
-    const [, , , , , , , stockString] = record;
+    const stockString = record.Stock;
     let stock = parseFloat(stockString.replace(trimRe, ''));
     if (Number.isNaN(stock)) {
       stock = 0;

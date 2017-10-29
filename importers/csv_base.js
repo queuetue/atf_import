@@ -1,52 +1,53 @@
 require('dotenv').config();
-const parse = require('csv-parse');
-const fs = require('fs');
+const csv = require('csv-stream');
 const Entity = require('../entities/csv_base');
+const request = require('request');
+const Sequelize = require('sequelize');
 
-const mongoCollectionName = process.env.MONGO_COLLECTION;
+const sequelize = new Sequelize('mysql://root@localhost/atf-import');
+const SessionItemModel = sequelize.import('../models/session_items');
 
 module.exports = class CSVBaseImporter {
-  constructor(filename, session, db) {
-    this.filename = filename;
+  constructor(session) {
     this.session = session;
-    this.db = db;
     this.Entity = Entity;
-    this.delimiter = ',';
+    this.default_delimiter = ',';
+    this.columns = ['Flavor', 'Density', 'Score', 'Cost', 'Volume', 'CostPerMl', 'Stock Level', 'Notes'];
   }
 
   save(e) {
-    this.db.collection(mongoCollectionName).insertOne(e.entity, (err) => {
-      if (err) throw err;
-    });
+    SessionItemModel.create({
+      session_id: this.session.id,
+      complete: false,
+      state: e.entity.state,
+      name: e.entity.name,
+      volume: e.entity.volume,
+      density: e.entity.density,
+      price: e.entity.price,
+      stock: e.entity.stock,
+      pricePerMl: e.entity.pricePerMl,
+      score: e.entity.score,
+      notes: e.entity.notes,
+    })
+      .then(() => {
+        e.session.changed('updated_at', true);
+        e.session.save();
+      });
   }
 
 
   import() {
-    const parser = parse({ delimiter: this.delimiter });
-    let record;
-
-    parser.on('readable', () => {
-      record = parser.read();
-      while (record) {
+    const options = { columns: this.columns };
+    const csvStream = csv.createStream(options);
+    const url = `https://storage.googleapis.com/dev-images.alltheflavors.com/imports/${this.session.filename}`;
+    request(url).pipe(csvStream)
+      .on('error', (err) => {
+        if (err) throw err;
+      })
+      .on('data', (data) => {
         const e = new this.Entity(this.session);
-        e.process(record);
+        e.process(data);
         this.save(e);
-        record = parser.read();
-      }
-    });
-
-    parser.on('error', (err) => {
-      if (err) throw err;
-    });
-
-    parser.on('finish', () => {
-      this.db.close();
-    });
-
-    fs.readFile(this.filename, (err, data) => {
-      if (err) throw err;
-      parser.write(data);
-      parser.end();
-    });
+      });
   }
 };

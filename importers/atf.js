@@ -6,6 +6,7 @@ module.exports = class extends CSVBaseImporter {
   constructor(filename, session, db) {
     super(filename, session, db);
     this.Entity = Entity;
-    this.delimiter = ',';
+    this.default_delimiter = ',';
+    this.columns = ['ID', 'Flavor', 'Density', 'Score', 'Price', 'Volume', 'CPM', 'Stock', 'Notes'];
   }
 };

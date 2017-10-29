@@ -1,7 +1,8 @@
 
 module.exports = class CSVBaseImportEntity {
-  constructor(sessionId) {
-    this.entity = { sessionId, state: 'incomplete' }; // Class?
+  constructor(session) {
+    this.session = session;
+    this.entity = {};
   }
 
   getDensity() {

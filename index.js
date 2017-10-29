@@ -1,25 +1,20 @@
 require('dotenv').config();
 
-const mongoUri = process.env.MONGO_URI;
-const { MongoClient } = require('mongodb');
+const Sequelize = require('sequelize');
 
-const mongoSessionCollectionName = `${process.env.MONGO_COLLECTION}Session`;
+const sequelize = new Sequelize('mysql://root@localhost/atf-import');
+const SessionModel = sequelize.import('./models/sessions');
 
-// Temporary vars for scaffolding
-const fileType = 'atf';
-const filename = './samples/atf_export.csv';
+const token = '7bc7f6c5-a411-4115-985d-01a3ee0de7c0';
 
-const Importer = require(`./importers/${fileType}`);
-
-MongoClient.connect(mongoUri, (err, database) => {
-  if (err) throw err;
-  const sessionData = {
-    filename,
-    fileType,
-    start: new Date(),
-  };
-
-  database.collection(mongoSessionCollectionName).insert(sessionData, (dbErr, r) => {
-    new Importer(filename, r.ops[0]._id, database).import();
+// SessionModel.findOne({ where: { token, state: 'new' } })
+SessionModel.findOne({ where: { token } })
+  .then((identity) => {
+    if (identity) {
+      const Importer = require(`./importers/${identity.file_type}`);
+      identity.update({ state: 'working' });
+      new Importer(identity).import();
+    } else {
+      sequelize.close();
+    }
   });
-});

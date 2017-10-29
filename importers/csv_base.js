@@ -7,6 +7,8 @@ const Sequelize = require('sequelize');
 const sequelize = new Sequelize('mysql://root@localhost/atf-import');
 const SessionItemModel = sequelize.import('../models/session_items');
 
+let promises = [];
+
 module.exports = class CSVBaseImporter {
   constructor(session) {
     this.session = session;
@@ -16,7 +18,7 @@ module.exports = class CSVBaseImporter {
   }
 
   save(e) {
-    SessionItemModel.create({
+    return SessionItemModel.create({
       session_id: this.session.id,
       complete: false,
       state: e.entity.state,
@@ -28,11 +30,7 @@ module.exports = class CSVBaseImporter {
       pricePerMl: e.entity.pricePerMl,
       score: e.entity.score,
       notes: e.entity.notes,
-    })
-      .then(() => {
-        e.session.changed('updated_at', true);
-        e.session.save();
-      });
+    });
   }
 
 
@@ -40,14 +38,25 @@ module.exports = class CSVBaseImporter {
     const options = { columns: this.columns };
     const csvStream = csv.createStream(options);
     const url = `https://storage.googleapis.com/dev-images.alltheflavors.com/imports/${this.session.filename}`;
-    request(url).pipe(csvStream)
-      .on('error', (err) => {
-        if (err) throw err;
-      })
-      .on('data', (data) => {
-        const e = new this.Entity(this.session);
-        e.process(data);
-        this.save(e);
-      });
+    return new Promise((resolve, reject) => {
+      request(url).pipe(csvStream)
+        .on('error', (err) => {
+          if (err) throw err;
+        })
+        .on('data', (data) => {
+          const e = new this.Entity(this.session);
+          e.process(data);
+          promises.push(this.save(e));
+        })
+        .on('close', () => {
+          return Promise.all(promises)
+            .then(() => {
+              this.session.changed('updated_at', true);
+              this.session.save().then(() => {
+                resolve();
+              });
+            });
+        });
+    });
   }
 };
